@@ -3,7 +3,8 @@ import './App.css';
 import { useGame } from './hooks/useGame';
 import { useSettings } from './hooks/useSettings';
 import { useStats } from './hooks/useStats';
-import { loadUserData, initUserData, clearGameState } from './services/storage';
+import { loadUserData, initUserData, clearGameState, saveUserData, saveHistory } from './services/storage';
+import { restoreFromPin } from './services/firebase';
 import { getCurrentChallenge, updateChallengeProgress } from './services/challenges';
 import TabBar from './components/TabBar';
 import CompletionModal from './components/CompletionModal';
@@ -61,12 +62,25 @@ function App() {
     }
   }, [game]);
 
-  const handleRestorePin = useCallback(() => {
+  const handleRestorePin = useCallback(async () => {
     const pin = prompt('Enter your 6-digit PIN:');
-    if (pin && pin.length === 6) {
-      alert('Cloud restore will be available soon! Your PIN: ' + userData.pin);
+    if (!pin || pin.length !== 6) return;
+
+    const result = await restoreFromPin(pin);
+    if (!result) {
+      alert('No data found for this PIN.');
+      return;
     }
-  }, [userData.pin]);
+
+    // Save restored data locally
+    saveUserData(result.userData);
+    for (const entry of result.history) {
+      saveHistory(entry);
+    }
+
+    alert('Data restored! Reloading...');
+    window.location.reload();
+  }, []);
 
   // Check for completion
   if (game.gameState?.completed && !showCompletion && !completionRecorded) {

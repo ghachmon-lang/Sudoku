@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import type {
   GameState,
   Difficulty,
-  CellValue,
   Move,
   Board,
 } from '../types';

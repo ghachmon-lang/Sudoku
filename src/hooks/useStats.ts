@@ -7,6 +7,7 @@ import {
   saveHistory,
   loadHistory,
 } from '../services/storage';
+import { syncUserToCloud, syncHistoryToCloud } from '../services/firebase';
 
 interface UseStatsReturn {
   stats: UserStats;
@@ -101,6 +102,10 @@ export function useStats(): UseStatsReturn {
 
       userData.stats = s;
       saveUserData(userData);
+
+      // Sync to cloud (fire and forget)
+      syncUserToCloud(userData);
+      syncHistoryToCloud(userData.pin, entry);
 
       setStats(s);
       setHistory(loadHistory());
