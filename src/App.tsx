@@ -4,6 +4,7 @@ import { useGame } from './hooks/useGame';
 import { useSettings } from './hooks/useSettings';
 import { useStats } from './hooks/useStats';
 import { loadUserData, initUserData, clearGameState } from './services/storage';
+import { getCurrentChallenge, updateChallengeProgress } from './services/challenges';
 import TabBar from './components/TabBar';
 import CompletionModal from './components/CompletionModal';
 import PlayPage from './pages/PlayPage';
@@ -20,6 +21,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('menu');
   const [showCompletion, setShowCompletion] = useState(false);
   const [completionRecorded, setCompletionRecorded] = useState(false);
+  const [challenge, setChallenge] = useState(getCurrentChallenge);
 
   const game = useGame();
   const { settings, toggleDarkMode, toggleErrorHighlighting, toggleShowTimer } = useSettings();
@@ -62,7 +64,6 @@ function App() {
   const handleRestorePin = useCallback(() => {
     const pin = prompt('Enter your 6-digit PIN:');
     if (pin && pin.length === 6) {
-      // TODO: Firebase restore — for now just show alert
       alert('Cloud restore will be available soon! Your PIN: ' + userData.pin);
     }
   }, [userData.pin]);
@@ -77,6 +78,13 @@ function App() {
       game.gameState.hintsUsed,
       game.gameState.isDaily,
     );
+    // Update weekly challenge progress
+    const updated = updateChallengeProgress(
+      game.gameState.elapsed,
+      game.gameState.difficulty,
+      game.gameState.hintsUsed,
+    );
+    setChallenge(updated);
     clearGameState();
   }
 
@@ -142,6 +150,7 @@ function App() {
             onStartGame={handleStartGame}
             hasInProgressGame={game.gameState !== null && !game.gameState.completed}
             onContinueGame={handleContinueGame}
+            challenge={challenge}
           />
         )}
         {activeTab === 'daily' && (

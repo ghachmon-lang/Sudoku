@@ -1,9 +1,11 @@
-import type { Difficulty } from '../types';
+import type { Difficulty, WeeklyChallenge } from '../types';
+import ChallengeCard from '../components/ChallengeCard';
 
 interface PlayPageProps {
   onStartGame: (difficulty: Difficulty) => void;
   hasInProgressGame: boolean;
   onContinueGame: () => void;
+  challenge: WeeklyChallenge;
 }
 
 const difficulties: { level: Difficulty; label: string; desc: string; color: string }[] = [
@@ -13,13 +15,18 @@ const difficulties: { level: Difficulty; label: string; desc: string; color: str
   { level: 'expert', label: 'Expert', desc: 'Only the brave', color: 'from-red-500/20 to-red-600/5 border-red-500/30' },
 ];
 
-export default function PlayPage({ onStartGame, hasInProgressGame, onContinueGame }: PlayPageProps) {
+export default function PlayPage({ onStartGame, hasInProgressGame, onContinueGame, challenge }: PlayPageProps) {
   return (
-    <div className="flex flex-col items-center gap-6 px-4 py-6 h-full overflow-y-auto">
+    <div className="flex flex-col items-center gap-5 px-4 py-6 h-full overflow-y-auto">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-3xl sm:text-4xl font-bold text-text-primary tracking-tight">Sudoku</h1>
         <p className="text-text-muted text-sm mt-1">Choose your challenge</p>
+      </div>
+
+      {/* Weekly challenge */}
+      <div className="w-full max-w-sm">
+        <ChallengeCard challenge={challenge} />
       </div>
 
       {/* Continue button */}

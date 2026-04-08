@@ -37,7 +37,7 @@ function Cell({ value, notes, isGiven, isSelected, isRelated, isSameNumber, isEr
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => (
             <span
               key={n}
-              className="text-[8px] sm:text-[9px] text-text-muted flex items-center justify-center leading-none"
+              className="text-[10px] sm:text-xs text-red-500 font-semibold flex items-center justify-center leading-none"
             >
               {notes.includes(n) ? n : ''}
             </span>
