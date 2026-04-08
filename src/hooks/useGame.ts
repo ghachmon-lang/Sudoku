@@ -328,49 +328,68 @@ export function useGame(): UseGameReturn {
   const useHint = useCallback(() => {
     if (!gameState || gameState.completed) return;
 
-    // Find an empty or incorrect cell to reveal
-    for (let r = 0; r < 9; r++) {
-      for (let c = 0; c < 9; c++) {
-        if (gameState.playerBoard[r][c] !== gameState.solution[r][c]) {
-          const previousValue = gameState.playerBoard[r][c];
-          const previousNotes = [...gameState.notes[r][c]];
+    // Determine which cell to hint: prefer the selected cell if it needs a hint,
+    // otherwise fall back to the first empty or incorrect cell
+    let r: number | null = null;
+    let c: number | null = null;
 
-          const newBoard = cloneBoard(gameState.playerBoard);
-          const newNotes = cloneNotes(gameState.notes);
-
-          newBoard[r][c] = gameState.solution[r][c];
-          newNotes[r][c] = [];
-
-          const move: Move = {
-            row: r,
-            col: c,
-            previousValue: gameState.playerBoard[r][c],
-            newValue: gameState.solution[r][c],
-            previousNotes,
-            newNotes: [],
-            type: 'value',
-          };
-
-          let updated: GameState = {
-            ...gameState,
-            playerBoard: newBoard,
-            notes: newNotes,
-            hintsUsed: gameState.hintsUsed + 1,
-          };
-          updated = pushMove(updated, move);
-
-          if (isBoardComplete(newBoard) && isBoardCorrect(newBoard, gameState.solution)) {
-            updated = { ...updated, completed: true };
+    if (
+      selectedCell &&
+      !isGivenCell(selectedCell.row, selectedCell.col) &&
+      gameState.playerBoard[selectedCell.row][selectedCell.col] !== gameState.solution[selectedCell.row][selectedCell.col]
+    ) {
+      r = selectedCell.row;
+      c = selectedCell.col;
+    } else {
+      // Fallback: find the first empty or incorrect cell
+      for (let row = 0; row < 9; row++) {
+        for (let col = 0; col < 9; col++) {
+          if (gameState.playerBoard[row][col] !== gameState.solution[row][col]) {
+            r = row;
+            c = col;
+            break;
           }
-
-          setGameState(updated);
-          setSelectedCell({ row: r, col: c });
-          setConflicts(computeAllConflicts(newBoard));
-          return;
         }
+        if (r !== null) break;
       }
     }
-  }, [gameState, pushMove]);
+
+    if (r === null || c === null) return;
+
+    const previousNotes = [...gameState.notes[r][c]];
+
+    const newBoard = cloneBoard(gameState.playerBoard);
+    const newNotes = cloneNotes(gameState.notes);
+
+    newBoard[r][c] = gameState.solution[r][c];
+    newNotes[r][c] = [];
+
+    const move: Move = {
+      row: r,
+      col: c,
+      previousValue: gameState.playerBoard[r][c],
+      newValue: gameState.solution[r][c],
+      previousNotes,
+      newNotes: [],
+      type: 'value',
+    };
+
+    let updated: GameState = {
+      ...gameState,
+      playerBoard: newBoard,
+      notes: newNotes,
+      hintsUsed: gameState.hintsUsed + 1,
+    };
+    updated = pushMove(updated, move);
+
+    if (isBoardComplete(newBoard) && isBoardCorrect(newBoard, gameState.solution)) {
+      updated = { ...updated, completed: true };
+    }
+
+    setGameState(updated);
+    setSelectedCell({ row: r, col: c });
+    setConflicts(computeAllConflicts(newBoard));
+  }, [gameState, selectedCell, pushMove]);
 
   const erase = useCallback(() => {
     if (!gameState || !selectedCell || gameState.completed) return;
